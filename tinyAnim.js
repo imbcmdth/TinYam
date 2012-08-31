@@ -1,4 +1,5 @@
 window.anim = (function(){
+
 	// local rAF and cAF shim
 	var requestAnimFrame = 
 		window.requestAnimationFrame       ||
@@ -103,8 +104,8 @@ window.anim = (function(){
 		}
 
 		// tickAnimation is called to evaluate each "frame" of an animation
-		function tickAnimation() {
-			elapsedTime = (new Date()) - startTime;
+		function tickAnimation(frameTime) {
+			elapsedTime = frameTime - startTime;
 
 			// Handle end-of-animation
 			if (elapsedTime >= options.duration)
