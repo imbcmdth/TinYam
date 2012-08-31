@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8 />
+<title>The greatest script in the world</title>
+<script src="tinyanim.js"></script>
+<script>
+(function(){
+	var timers = {};
+	// console.time shim for IE
+	if(!("time" in console)) {
+		window.time = function(name) {
+			timers[name] = +(new Date());
+		}
+		window.timeEnd = function(name) {
+			if(name in timers) {
+				console.log(name + ": " + (+(new Date() - timers[name])) + "ms");
+			}
+		}
+	} else {
+		window.time = Function.prototype.bind.call(console.time, console);
+		window.timeEnd = Function.prototype.bind.call(console.timeEnd, console);
+	}
+})();
+</script>
+<script>
+window.onload = function(){
+	function fadeHandler(values) {
+		this.style.opacity = values[0] / 100;
+		this.style.filter = "alpha(opacity="+ values[0] +")";
+		this.parentNode.getElementsByClassName("output")[0].innerHTML = "Opacity: " + Math.round(values[0]) + "%";
+	}
+	function fadeIn (elem, timer, stopped, finished) {
+		return anim({duration: timer, from: [0], to: [100], using: elem, onstop: stopped, onfinish: finished}, fadeHandler);
+	}
+	function fadeOut (elem, timer, stopped, finished) {
+		return anim({duration: timer, from: [100], to: [0], using: elem, onstop: stopped, onfinish: finished}, fadeHandler);
+	}
+
+	function colorHandler(values) {
+		var color = "rgb(" + Math.round(values[0]) + ", " + Math.round(values[1]) + ", " + Math.round(values[2]) + ")";
+		this.style.backgroundColor = color;
+		this.parentNode.getElementsByClassName("output")[0].innerHTML = "Color: " + color;
+	}
+	function animateBackgroundColor (elem, timer, color, stopped, finished) {
+		var fromArray = window.getComputedStyle(elem).backgroundColor.match(/(\d+)/g);
+		fromArray = fromArray.map(function(e){ return parseFloat(e); });
+		var toArray = color.match(/(\d+)/g);
+		toArray = toArray.map(function(e){ return parseFloat(e); });
+		if(fromArray.length > toArray.length) fromArray.forEach(function(e, i) { if(i >= toArray.length) toArray[i] = 0; });
+		if(toArray.length > fromArray.length) toArray.forEach(function(e, i) { if(i >= fromArray.length) fromArray[i] = 0; });
+		return anim({duration: timer, from: fromArray, to: toArray, using: elem, onstop: stopped, onfinish: finished, easing:anim.easeInOutQuad}, colorHandler);
+	}
+
+	function animatePosition (elem, timer, position, stopped, finished) {
+		var style = window.getComputedStyle(elem);
+		console.log(style.getPropertyCSSValue('left'));
+		var fromArray = [parseFloat(style.left), parseFloat(style.top)];
+		function positionHandler(values) {
+			this.style.left = values[0] + "%";
+			this.style.top = values[1] + "%";
+			this.parentNode.getElementsByClassName("output")[0].innerHTML = "Pos: " + values[0].toFixed(2) + "%, " + values[1].toFixed(2) + "%";
+		}
+		return anim({duration: timer, from: fromArray, to: position, using: elem, onstop: stopped, onfinish: finished, easing:anim.easeOutBounce}, positionHandler);
+	}
+
+
+	var animationElements = ["a", "b", "c", "d"];
+	var animControl = {};
+
+	animationElements.forEach(function(e, i) {
+		var parent = document.getElementById(e);
+		animControl[e] = fadeOut(parent.getElementsByClassName("bg")[0], 10000, function(){ console.log("anim_"+ e + " stopped"); }, function(){ console.log("anim_"+ e + " finished"); });
+		parent.getElementsByClassName("play")[0].onclick = animControl[e].play;
+		parent.getElementsByClassName("stop")[0].onclick = animControl[e].stop;
+		parent.getElementsByClassName("reset")[0].onclick = animControl[e].reset;
+		parent.getElementsByClassName("end")[0].onclick = animControl[e].finish;
+	});
+
+	(function(){
+		var parent = document.getElementById("e");
+		animControl['e'] = animateBackgroundColor(parent.getElementsByClassName("bg")[0], 10000, "rgb(0, 200, 200)", function(){ console.log("anim_e stopped"); }, function(){ console.log("anim_e finished"); });
+		parent.getElementsByClassName("play")[0].onclick = animControl['e'].play;
+		parent.getElementsByClassName("stop")[0].onclick = animControl['e'].stop;
+		parent.getElementsByClassName("reset")[0].onclick = animControl['e'].reset;
+		parent.getElementsByClassName("end")[0].onclick = animControl['e'].finish;
+	})();
+
+	(function(){
+		var parent = document.getElementById("f");
+		animControl['f'] = animatePosition(parent.getElementsByClassName("bg")[0], 10000, [0, 0], function(){ console.log("anim_e stopped"); }, function(){ console.log("anim_e finished"); });
+		parent.getElementsByClassName("play")[0].onclick = animControl['f'].play;
+		parent.getElementsByClassName("stop")[0].onclick = animControl['f'].stop;
+		parent.getElementsByClassName("reset")[0].onclick = animControl['f'].reset;
+		parent.getElementsByClassName("end")[0].onclick = animControl['f'].finish;
+	})();
+
+	setTimeout(animControl['b'].stop, 2000);
+	setTimeout(animControl['c'].finish, 2000);
+	setTimeout(function(){ animControl['d'].reset(); setTimeout(animControl['d'].play, 4000); }, 2000);
+}
+</script>
+<style>
+body {
+	overflow:hidden;
+}
+.parent {
+	position:relative;
+	padding:10px;
+}
+.bg {
+	position:absolute;
+	left:0px;
+	top:0px;
+	width:100%;
+	height:100%;
+	background: hotpink;
+	z-index:-1;
+}
+.description {}
+.output {
+	float:left;
+	margin-right:20px;
+	width:200px;
+}
+.parent button {
+	float:right;
+}
+</style>
+</head>
+<body>
+	<div class="parent" id="a">
+		<div class="bg"></div>
+		<div class="description">This animation runs to completion.
+			<button class="end">End</button>
+			<button class="reset">Reset</button>
+			<button class="stop">Stop</button>
+			<button class="play">Play</button>
+			<span class="output"></span>
+		</div>
+	</div>
+	<div class="parent" id="b">
+		<div class="bg"></div>
+		<div class="description">This animation stops early.
+			<button class="end">End</button>
+			<button class="reset">Reset</button>
+			<button class="stop">Stop</button>
+			<button class="play">Play</button>
+			<span class="output"></span>
+		</div>
+	</div>
+	<div class="parent" id="c">
+		<div class="bg"></div>
+		<div class="description">This animation ends early.
+			<button class="end">End</button>
+			<button class="reset">Reset</button>
+			<button class="stop">Stop</button>
+			<button class="play">Play</button>
+			<span class="output"></span>
+		</div>
+	</div>
+	<div class="parent" id="d">
+		<div class="bg"></div>
+		<div class="description">This animation pauses for 4 seconds before continuing.
+			<button class="end">End</button>
+			<button class="reset">Reset</button>
+			<button class="stop">Stop</button>
+			<button class="play">Play</button>
+			<span class="output"></span>
+		</div>
+	</div>
+	<div class="parent" id="e">
+		<div class="bg"></div>
+		<div class="description">This animates the background color.
+			<button class="end">End</button>
+			<button class="reset">Reset</button>
+			<button class="stop">Stop</button>
+			<button class="play">Play</button>
+			<span class="output"></span>
+		</div>
+	</div>
+	<div class="parent" id="f">
+		<div class="bg" style="width:50%;left:100%;"></div>
+		<div class="description">This animates the position.
+			<button class="end">End</button>
+			<button class="reset">Reset</button>
+			<button class="stop">Stop</button>
+			<button class="play">Play</button>
+			<span class="output"></span>
+		</div>
+	</div>
+</body>
+</html>
