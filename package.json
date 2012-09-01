@@ -1,0 +1,37 @@
+{
+  "name": "TinYam",
+  "version": "0.1.0",
+  "description": "A very tiny animation library with support for animation controls",
+  "main": "tinyam.js",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/imbcmdth/TinYam.git"
+  },
+  "keywords": [
+    "tiny",
+    "animation",
+    "library",
+    "requestAnimationFrame"
+    "controllable",
+    "controls"
+  ],
+  "dependencies": {
+  },
+  "devDependencies": {
+  },
+  "author": {
+    "name": "Jon-Carlos Rivera",
+    "email": "jon.carlos.rivera@gmail.com",
+    "url": "http://jon-carlos.com"
+  },
+  "scripts": {
+    "test": "vows test/*.js"
+  },
+  "license": "MIT",
+  "engine": {
+    "node": ">=0.6.0"
+  }
+}
