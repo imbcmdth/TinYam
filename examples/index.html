@@ -3,7 +3,7 @@
 <head>
 <meta charset=utf-8 />
 <title>The greatest script in the world</title>
-<script src="tinyanim.js"></script>
+<script src="../tinyam.js"></script>
 <script>
 (function(){
 	var timers = {};
@@ -31,10 +31,10 @@ window.onload = function(){
 		this.parentNode.getElementsByClassName("output")[0].innerHTML = "Opacity: " + Math.round(values[0]) + "%";
 	}
 	function fadeIn (elem, timer, stopped, finished) {
-		return anim({duration: timer, from: [0], to: [100], using: elem, onstop: stopped, onfinish: finished}, fadeHandler);
+		return TinYam({duration: timer, from: [0], to: [100], using: elem, onstop: stopped, onfinish: finished}, fadeHandler);
 	}
 	function fadeOut (elem, timer, stopped, finished) {
-		return anim({duration: timer, from: [100], to: [0], using: elem, onstop: stopped, onfinish: finished}, fadeHandler);
+		return TinYam({duration: timer, from: [100], to: [0], using: elem, onstop: stopped, onfinish: finished}, fadeHandler);
 	}
 
 	function colorHandler(values) {
@@ -49,19 +49,19 @@ window.onload = function(){
 		toArray = toArray.map(function(e){ return parseFloat(e); });
 		if(fromArray.length > toArray.length) fromArray.forEach(function(e, i) { if(i >= toArray.length) toArray[i] = 0; });
 		if(toArray.length > fromArray.length) toArray.forEach(function(e, i) { if(i >= fromArray.length) fromArray[i] = 0; });
-		return anim({duration: timer, from: fromArray, to: toArray, using: elem, onstop: stopped, onfinish: finished, easing:anim.easeInOutQuad}, colorHandler);
+		return TinYam({duration: timer, from: fromArray, to: toArray, using: elem, onstop: stopped, onfinish: finished, easing:"easeInOutQuad"}, colorHandler);
 	}
 
 	function animatePosition (elem, timer, position, stopped, finished) {
 		var style = window.getComputedStyle(elem);
-		console.log(style.getPropertyCSSValue('left'));
+		//console.log(style.getPropertyCSSValue('left'));
 		var fromArray = [parseFloat(style.left), parseFloat(style.top)];
 		function positionHandler(values) {
 			this.style.left = values[0] + "%";
 			this.style.top = values[1] + "%";
 			this.parentNode.getElementsByClassName("output")[0].innerHTML = "Pos: " + values[0].toFixed(2) + "%, " + values[1].toFixed(2) + "%";
 		}
-		return anim({duration: timer, from: fromArray, to: position, using: elem, onstop: stopped, onfinish: finished, easing:anim.easeOutBounce}, positionHandler);
+		return TinYam({duration: timer, from: fromArray, to: position, using: elem, onstop: stopped, onfinish: finished, easing:"easeOutBounce"}, positionHandler);
 	}
 
 
