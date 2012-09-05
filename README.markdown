@@ -85,11 +85,11 @@ defaults = {
 
 `paused` A boolean. If true, the animation starts in the `paused` state and must be started manually using the `animationControl` object returned by `TinYam`.
 
-`onfinish` A function that is called only once the animation has reached the end.
+`onfinish` A function to call once the animation has reached the end.
 
-`onstop` A function that is called whenever the animation is stopped whether it has reached the end or not.
+`onstop` A function to call whenever the animation is stopped whether it has reached the end or not.
 
-`onplay` A function that is called once the animation has been started or restarted.
+`onplay` A function to call whenever the animation has been started or restarted.
 
 `maxFPS` A number that is the maximum number of times per second the `frameCallback` is to be called.
 

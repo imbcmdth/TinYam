@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8 />
+<title>The greatest script in the world</title>
+<script src="../tinyam.js"></script>
+<script>
+window.onload = function(){
+	"use strict";
+	// Get some elements for later
+	var dollars = Math.floor(Math.random() * 500000);
+	var projectionBarContainer = document.getElementById("projection-container");
+	var progressBar = document.getElementById("projection-bar");
+	var progressText = document.getElementsByClassName("current")[0];
+	var markerContainer = document.getElementById("projection-key");
+	var donationInput = document.getElementById("dollars");
+	var plotButton = document.getElementById("plot-it");
+
+	plotButton.onclick = function(){
+		var val = donationInput.value;
+		val = parseFloat(val) || 0;
+		dollars += Math.max(0, Math.min(val, 1000000));
+
+		animationControl.finish();
+
+		var highlighted = Array.prototype.slice.call(document.getElementsByClassName("highlight"));
+		for(var i = 0; i < highlighted.length; i++) {
+			highlighted[i].className = highlighted[i].className.replace("highlight", "");
+		}
+
+		animationControl = animateProgressBarHeight(Math.max(0, Math.min(dollars, 1000000)));
+	}
+
+	var animationControl = animateProgressBarHeight(Math.max(0, Math.min(dollars, 1000000)));
+
+	function makeHighlightMarker(percent) {
+		var marker = markerContainer.getElementsByClassName("percent_" + percent);
+		return function(){
+			if(marker.length >= 1) marker[0].className += " highlight";
+		};
+	}
+
+	function formatNumber(v) {
+		var arr = ["", "k", "M", "B"];
+		var suffix = 0;
+
+		v = Math.floor(v);
+		
+		while(v >= 1000 && suffix < arr.length) {
+			v = Math.floor(v / 1000);
+			suffix++;
+		}
+		return v + arr[suffix];
+	}
+
+	function animateProgressBarHeight (dollars) {
+		var targetPercent = (dollars / 1000000) * 100;
+		var style = window.getComputedStyle(progressBar);
+		var startHeight = 30;
+		var fromArray = [startHeight];
+		var targetHeight = startHeight + targetPercent * 5;
+
+		var keyframes = {
+			"0%": fromArray
+		};
+
+		keyframes[targetPercent + "%"] = [targetHeight];
+
+		var callbacks = {
+			"10%": [ makeHighlightMarker(10) ],
+			"20%": [ makeHighlightMarker(20) ],
+			"30%": [ makeHighlightMarker(30) ],
+			"40%": [ makeHighlightMarker(40) ],
+			"50%": [ makeHighlightMarker(50) ],
+			"60%": [ makeHighlightMarker(60) ],
+			"70%": [ makeHighlightMarker(70) ],
+			"80%": [ makeHighlightMarker(80) ],
+			"90%": [ makeHighlightMarker(90) ],
+			"100%": [ makeHighlightMarker(100) ]
+		};
+
+		var doneCallback = function() {
+			var text = progressText.getElementsByClassName("value")[0];
+			text.innerHTML = "$" + formatNumber(dollars);
+			progressText.style.bottom = Math.max(1, targetHeight) + "px";
+			this.style.height = Math.max(1, targetHeight) + "px";
+		};
+
+		if ( callbacks[targetPercent + "%"] != null ) {
+			callbacks[targetPercent + "%"].push(doneCallback);
+		} else {
+			callbacks[targetPercent + "%"] = [ doneCallback ];
+		}
+
+		function frameHandler(values) {
+			var adjustedValue = values[0] - startHeight;
+			var text = progressText.getElementsByClassName("value")[0];
+			text.innerHTML = "$" + formatNumber(adjustedValue * 2000);
+			progressText.style.bottom = Math.max(1, values[0]) + "px";
+			this.style.height = Math.max(1, values[0]) + "px";
+		}
+
+		return TinYam({
+			duration: 2500,
+			keyframes: keyframes,
+			callbacks: callbacks,
+/*			onstart: function(){ console.log("started") },
+			onplay: function(){ console.log("playing") },
+			onend: function(){ console.log("ended") },*/
+			using: progressBar,
+			easing:"easeInQuad"
+		}, frameHandler);
+	}
+};
+</script>
+<style>
+h1, h2, h3 {
+	font-family: sans-serif;
+}
+
+#projection-container {
+	width:500px;
+	position:relative;
+}
+
+#projection-bar-container {
+	height:565px;
+	width:50px;
+	float:left;
+	position:relative;
+	padding:10px;
+	margin-left:200px;
+	border:2px solid lightgrey;
+	border-radius: 35px;
+}
+
+#projection-bar-overlay {
+	height:100%;
+	width:70px;
+	left:0px;
+	top:0px;
+	position:absolute;
+	border-radius: 35px;
+	background: -webkit-linear-gradient(left, darkgrey 0%,  rgba(0,0,0,0) 40%, rgba(0,0,0,0) 60%, darkgrey 100%);
+	background: -moz-linear-gradient(left, darkgrey 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,0) 60%, darkgrey 100%);
+	opacity:0.5;
+}
+
+#projection-bar {
+	position:absolute;
+	left:20px;
+	bottom:30px;
+	width:30px;
+	height:30px;
+	background-color: blue;
+	border-radius: 15px;
+	background: -webkit-linear-gradient(left, #55f 0%, blue 100%);
+	background: -moz-linear-gradient(left, #55f 0%, blue 100%);
+}
+
+#projection-bulb {
+	position:absolute;
+	width:50px;
+	height:50px;
+	bottom:10px;
+	background-color: blue;
+	border-radius: 25px;
+	background: -webkit-linear-gradient(left, #55f 0%, #55f 20%, blue 80%);
+	background: -moz-linear-gradient(left, #55f 0%, #55f 20%, blue 80%);
+}
+
+#projection-key{
+	position:relative;
+	padding-top:20px;
+	margin-left:238px;
+	width:220px;
+}
+
+.projection-point {
+	position:relative;
+	height:20px;
+	left:2px;
+	margin-bottom:29px;
+	font-size: 20px;
+	font-family: sans-serif;
+	border-bottom:1px solid darkgrey;
+	text-align:right;
+}
+.projection-point.highlight {
+	color:red;
+	border-color:red;
+}
+
+.projection-point.highlight .little-circle {
+	border-color:red;
+}
+
+.little-circle {
+	position: relative;
+	top:-8px;
+	left:-7px;
+	width:6px;
+	height:6px;
+	border-radius: 3px;
+	border:1px solid darkgrey;
+}
+
+.projection-point.current {
+	position: absolute;
+	margin-bottom:18px;
+	bottom:30px;
+	width:232px;
+	margin-left:0px;
+	text-align:left;
+}
+
+.projection-point.current .little-circle {
+	width:4px;
+	height:4px;
+	border-radius: 2px;
+	top:-7px;
+	left:232px;
+	background-color:darkgrey;
+}
+
+#donate {
+	float:right;
+}
+#donate input,
+#donate button {
+	padding:5px;
+}
+
+.clearfix {
+	clear:both;
+}
+</style>
+</head>
+<body>
+	<h1>HTML5 Animated Fund-Raising Thermometer</h1>
+	<h2>We need your help to fight Flash!</h2>
+	<div id="donate">
+		Donate Now: <input type="text" id="dollars" placeholder="Enter a dollar amount"/><button id="plot-it">Donate it!</button>
+	</div>
+	<div id="projection-container">
+		<div id="projection-bar-container">
+			<div id="projection-bar"></div>
+			<div id="projection-bulb"></div>
+			<div id="projection-bar-overlay"></div>
+		</div>
+		<div class="projection-point current">Raised <span class="value">$0</span><div class="little-circle"></div></div>
+		<div id="projection-key">
+			<div class="projection-point percent_100"><span class="value">Goal $1M</span><div class="little-circle"></div></div>
+			<div class="projection-point percent_90"><span class="value">$900k</span><div class="little-circle"></div></div>
+			<div class="projection-point percent_80"><span class="value">$800k</span><div class="little-circle"></div></div>
+			<div class="projection-point percent_70"><span class="value">$700k</span><div class="little-circle"></div></div>
+			<div class="projection-point percent_60"><span class="value">$600k</span><div class="little-circle"></div></div>
+			<div class="projection-point percent_50"><span class="value">$500k</span><div class="little-circle"></div></div>
+			<div class="projection-point percent_40"><span class="value">$400k</span><div class="little-circle"></div></div>
+			<div class="projection-point percent_30"><span class="value">$300k</span><div class="little-circle"></div></div>
+			<div class="projection-point percent_20"><span class="value">$200k</span><div class="little-circle"></div></div>
+			<div class="projection-point percent_10"><span class="value">$100k</span><div class="little-circle"></div></div>
+		</div>
+		<div class="clearfix"></div>
+	</div>

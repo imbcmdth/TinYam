@@ -30,11 +30,37 @@ window.onload = function(){
 		this.style.filter = "alpha(opacity="+ values[0] +")";
 		this.parentNode.getElementsByClassName("output")[0].innerHTML = "Opacity: " + Math.round(values[0]) + "%";
 	}
+
 	function fadeIn (elem, timer, stopped, finished) {
-		return TinYam({duration: timer, from: [0], to: [100], using: elem, onstop: stopped, onfinish: finished}, fadeHandler);
+		return TinYam({
+			duration: timer,
+			keyframes: {
+				"0%": [0],
+				"100%": [100]
+			},
+			callbacks: {
+				"100%": finished
+			},
+			using: elem,
+			onstop: stopped
+		}, fadeHandler);
 	}
+
 	function fadeOut (elem, timer, stopped, finished) {
-		return TinYam({duration: timer, from: [100], to: [0], using: elem, onstop: stopped, onfinish: finished}, fadeHandler);
+		return TinYam({
+			duration: timer,
+			keyframes: {
+				"0%": [100],
+				"50%": [20],
+				"100%": [0]
+			},
+			callbacks: {
+				"0%": function(i){ console.log("started", i); },
+				"100%": finished
+			},
+			using: elem,
+			onstop: stopped
+		}, fadeHandler);
 	}
 
 	function colorHandler(values) {
@@ -49,7 +75,18 @@ window.onload = function(){
 		toArray = toArray.map(function(e){ return parseFloat(e); });
 		if(fromArray.length > toArray.length) fromArray.forEach(function(e, i) { if(i >= toArray.length) toArray[i] = 0; });
 		if(toArray.length > fromArray.length) toArray.forEach(function(e, i) { if(i >= fromArray.length) fromArray[i] = 0; });
-		return TinYam({duration: timer, from: fromArray, to: toArray, using: elem, onstop: stopped, onfinish: finished, easing:"easeInOutQuad"}, colorHandler);
+		return TinYam({
+			duration: timer,
+			keyframes: {
+				"0%": fromArray,
+				"50%": [200, 200, 0],
+				"100%": toArray
+			},
+			using: elem,
+			onstop: stopped,
+			onfinish: finished,
+			easing:"easeInOutQuad"
+		}, colorHandler);
 	}
 
 	function animatePosition (elem, timer, position, stopped, finished) {
@@ -61,7 +98,20 @@ window.onload = function(){
 			this.style.top = values[1] + "%";
 			this.parentNode.getElementsByClassName("output")[0].innerHTML = "Pos: " + values[0].toFixed(2) + "%, " + values[1].toFixed(2) + "%";
 		}
-		return TinYam({duration: timer, from: fromArray, to: position, using: elem, onstop: stopped, onfinish: finished, easing:"easeOutBounce"}, positionHandler);
+		return TinYam({
+			duration: timer,
+			keyframes: {
+				"0%": fromArray,
+				"100%": position
+			},
+			callbacks: {
+				"80%": function(){ console.log("passed 80%"); }
+			},
+			using: elem,
+			onstop: stopped,
+			onfinish: finished,
+			easing:"easeInOutQuad"
+		}, positionHandler);
 	}
 
 
@@ -75,6 +125,7 @@ window.onload = function(){
 		parent.getElementsByClassName("stop")[0].onclick = animControl[e].stop;
 		parent.getElementsByClassName("reset")[0].onclick = animControl[e].reset;
 		parent.getElementsByClassName("end")[0].onclick = animControl[e].finish;
+		parent.getElementsByClassName("start")[0].onclick = animControl[e].start;
 	});
 
 	(function(){
@@ -84,6 +135,7 @@ window.onload = function(){
 		parent.getElementsByClassName("stop")[0].onclick = animControl['e'].stop;
 		parent.getElementsByClassName("reset")[0].onclick = animControl['e'].reset;
 		parent.getElementsByClassName("end")[0].onclick = animControl['e'].finish;
+		parent.getElementsByClassName("start")[0].onclick = animControl['e'].start;
 	})();
 
 	(function(){
@@ -93,11 +145,12 @@ window.onload = function(){
 		parent.getElementsByClassName("stop")[0].onclick = animControl['f'].stop;
 		parent.getElementsByClassName("reset")[0].onclick = animControl['f'].reset;
 		parent.getElementsByClassName("end")[0].onclick = animControl['f'].finish;
+		parent.getElementsByClassName("start")[0].onclick = animControl['f'].start;
 	})();
 
 	setTimeout(animControl['b'].stop, 2000);
 	setTimeout(animControl['c'].finish, 2000);
-	setTimeout(function(){ animControl['d'].reset(); setTimeout(animControl['d'].play, 4000); }, 2000);
+	setTimeout(function(){ animControl['d'].stop(); setTimeout(animControl['d'].play, 4000); }, 2000);
 }
 </script>
 <style>
@@ -136,6 +189,7 @@ body {
 			<button class="reset">Reset</button>
 			<button class="stop">Stop</button>
 			<button class="play">Play</button>
+			<button class="start">Start</button>
 			<span class="output"></span>
 		</div>
 	</div>
@@ -146,6 +200,7 @@ body {
 			<button class="reset">Reset</button>
 			<button class="stop">Stop</button>
 			<button class="play">Play</button>
+			<button class="start">Start</button>
 			<span class="output"></span>
 		</div>
 	</div>
@@ -156,6 +211,7 @@ body {
 			<button class="reset">Reset</button>
 			<button class="stop">Stop</button>
 			<button class="play">Play</button>
+			<button class="start">Start</button>
 			<span class="output"></span>
 		</div>
 	</div>
@@ -166,6 +222,7 @@ body {
 			<button class="reset">Reset</button>
 			<button class="stop">Stop</button>
 			<button class="play">Play</button>
+			<button class="start">Start</button>
 			<span class="output"></span>
 		</div>
 	</div>
@@ -176,6 +233,7 @@ body {
 			<button class="reset">Reset</button>
 			<button class="stop">Stop</button>
 			<button class="play">Play</button>
+			<button class="start">Start</button>
 			<span class="output"></span>
 		</div>
 	</div>
@@ -186,6 +244,7 @@ body {
 			<button class="reset">Reset</button>
 			<button class="stop">Stop</button>
 			<button class="play">Play</button>
+			<button class="start">Start</button>
 			<span class="output"></span>
 		</div>
 	</div>
