@@ -203,6 +203,7 @@
 			    startTime = 0,
 			    elapsedTime = 0,
 			    lastFrame = 0,
+			    lastAnimationTime = 0,
 			    timerId = -1,
 			    easingFunction = (typeof options.easing === "function") 
 			    	? options.easing
@@ -218,8 +219,7 @@
 			    currentSegment = 0,
 			    currentCallback = 0,
 			    segmentStart,
-			    segmentEnd,
-			    segmentDuration;
+			    segmentEnd;
 
 			var keyframes = convertKeyframes(options.keyframes, options.duration, sortByTime);
 			var callbacks = convertCallbacks(options.callbacks, options.duration, sortByTime);
@@ -248,10 +248,10 @@
 				elapsedTime = 0;
 				currentSegment = 0;
 				currentCallback = 0;
+				lastAnimationTime = 0;
 
 				segmentStart = keyframes[currentSegment++];
 				segmentEnd = keyframes[currentSegment];
-				segmentDuration = segmentEnd.time - segmentStart.time;
 
 				lastFrame = +(new Date());
 				return isPaused ? controlObj : playAnimation();
@@ -295,19 +295,11 @@
 				return controlObj;
 			}
 
-			// tickAnimation is called to evaluate each "frame" of an animation
-			function tickAnimation(frameTime) {
-				elapsedTime = frameTime - startTime;
-
-				var frameInterval = frameTime - lastFrame;
-
-				// animation time is the easing modified location in the animation
-				var animationTime = totalDuration * easingFunction.call(using, elapsedTime / totalDuration, 0, 1, options);
-
-				var segmentTime = animationTime - segmentStart.time;
-
-				// fast foward through segments if necessary
+			function fastThroughSegments(animationTime) {
 				while(animationTime > segmentEnd.time && currentSegment < numSegments - 1) {
+					segmentStart = keyframes[currentSegment++];
+					segmentEnd = keyframes[currentSegment];
+
 					// trigger any valid callbacks in the last segment that we
 					// may have passed during this last frame interval
 					while(currentCallback < numCallbacks && segmentStart.time >= callbacks[currentCallback].time) {
@@ -319,11 +311,6 @@
 							}
 						}
 					}
-
-					segmentStart = keyframes[currentSegment++];
-					segmentEnd = keyframes[currentSegment];
-					segmentTime = animationTime - segmentStart.time;
-					segmentDuration = segmentEnd.time - segmentStart.time;
 				}
 
 				// trigger any valid callbacks remaining this last frame interval
@@ -336,40 +323,59 @@
 						}
 					}
 				}
+			}
+
+			// tickAnimation is called to evaluate each "frame" of an animation
+			function tickAnimation(frameTime) {
+				elapsedTime = frameTime - startTime;
+
+				var frameInterval = frameTime - lastFrame;
 
 				// Handle end-of-animation
 				if (elapsedTime >= totalDuration) {
+					fastThroughSegments(totalDuration);
 					if (!loopAnim) finishAnimation();
 					else resetAnimation();
-				} else {
-
-					// Skip this frame if the minimal interval hasn't been reached
-					if(frameInterval < minInterval) return timerId = requestAnimFrame( tickAnimation );
-
-					lastFrame = frameTime;
-
-					// rewind through segments if necessary (for easing
-					// functions that "go in reverse" like bounce) this 
-					// is probably a bad idea
-/*					while(animationTime < segmentStart.time && currentSegment >= 0) {
-						segmentEnd = keyframes[currentSegment--];
-						segmentStart = keyframes[currentSegment];
-						segmentTime = animationTime - segmentStart.time;
-						segmentDuration = segmentEnd.time - segmentStart.time;
-					}
-*/
-
-					if(segmentStart.values != null && segmentEnd.values != null) {
-						// interpolate values using provided interpolation function
-						var currentValues = arrayMap.call(segmentStart.values, function(from, i, a){
-							return anim.easeLinear.call(using, segmentTime / segmentDuration, from, this[i] - from, options);
-						}, segmentEnd.values);
-						frameCallback.call(using, currentValues, options);
-					}
-
-					// Let's get the next frame
-					timerId = requestAnimFrame( tickAnimation );
+					return;
 				}
+
+				// Skip this frame if the minimal interval hasn't been reached
+				if(frameInterval < minInterval) return timerId = requestAnimFrame( tickAnimation );
+
+				// animation time is the easing modified location in the animation
+				var animationTime = totalDuration * easingFunction.call(using, elapsedTime / totalDuration, 0, 1, options);
+
+				fastThroughSegments(animationTime);
+				var segmentTime = animationTime - segmentStart.time;
+				var segmentDuration = segmentEnd.time - segmentStart.time;
+
+				// rewind through segments if necessary (for easing
+				// functions that "go in reverse" like bounce) this 
+				// is probably a bad idea
+/*					while(animationTime < segmentStart.time && currentSegment >= 0) {
+					segmentEnd = keyframes[currentSegment--];
+					segmentStart = keyframes[currentSegment];
+					segmentTime = animationTime - segmentStart.time;
+					segmentDuration = segmentEnd.time - segmentStart.time;
+				}
+*/
+				if(segmentStart.values != null && segmentEnd.values != null) {
+					// interpolate values using provided interpolation function
+					var currentValues = arrayMap.call(segmentStart.values, function(from, i, a){
+						return anim.easeLinear.call(using, segmentTime / segmentDuration, from, this[i] - from, options);
+					}, segmentEnd.values);
+					frameCallback.call(using, currentValues, options);
+				} else if(segmentEnd.values == null && lastAnimationTime < segmentStart.time) {
+					// We draw an end-of-segment so that animations end on the right value
+					var currentValues = segmentStart.values.slice();
+					frameCallback.call(using, currentValues, options);
+				}
+
+				lastFrame = frameTime;
+				lastAnimationTime = animationTime;
+
+				// Let's get the next frame
+				timerId = requestAnimFrame( tickAnimation );
 
 			}
 
