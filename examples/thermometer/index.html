@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8 />
+<title>The greatest thermometer script.. in the world</title>
+<script src="../../tinyam.js"></script>
+<script>
+window.onload = function(){
+	"use strict";
+	var dollars = 100001 + Math.floor(Math.random() * 499999);
+//	var dollars = 100000;
+	// Get some elements for later
+	var projectionBarContainer = document.getElementById("projection-container");
+	var progressBar = document.getElementById("projection-bar");
+	var progressTop = document.getElementById("projection-top");
+	var progressText = document.getElementsByClassName("current")[0];
+	var markerContainer = document.getElementById("projection-key");
+	var donationInput = document.getElementById("dollars");
+	var plotButton = document.getElementById("plot-it");
+
+	plotButton.onclick = function(){
+		var val = donationInput.value;
+		val = parseFloat(val) || 0;
+		dollars += Math.max(0, Math.min(val, 1000000));
+
+		animationControl.finish();
+
+		var highlighted = Array.prototype.slice.call(document.getElementsByClassName("highlight"));
+		for(var i = 0; i < highlighted.length; i++) {
+			highlighted[i].className = highlighted[i].className.replace("highlight", "");
+		}
+
+		animationControl = animateProgressBarHeight(Math.max(0, Math.min(dollars, 1000000)));
+	}
+
+	var animationControl = animateProgressBarHeight(Math.max(0, Math.min(dollars, 1000000)));
+
+	function makeMarkerFunction(percent) {
+		var marker = markerContainer.getElementsByClassName("percent_" + percent);
+		return function(){
+			if(marker.length >= 1) marker[0].className += " highlight";
+		};
+	}
+
+	function formatNumber(v) {
+		var arr = ["", "k", "M", "B"];
+		var suffix = 0;
+
+		v = Math.floor(v);
+		
+		while(v >= 1000 && suffix < arr.length) {
+			v = Math.floor(v / 1000);
+			suffix++;
+		}
+		return v + arr[suffix];
+	}
+
+	function animateProgressBarHeight (dollars) {
+		var targetPercent = (dollars / 1000000) * 100;
+		var fromArray = [0];
+		var targetHeight = targetPercent * 5;
+
+		var keyframes = {
+			"0%": fromArray
+		};
+
+		keyframes[targetPercent + "%"] = [targetHeight];
+
+		var callbacks = {
+			"10%": [ makeMarkerFunction(10) ],
+			"20%": [ makeMarkerFunction(20) ],
+			"30%": [ makeMarkerFunction(30) ],
+			"40%": [ makeMarkerFunction(40) ],
+			"50%": [ makeMarkerFunction(50) ],
+			"60%": [ makeMarkerFunction(60) ],
+			"70%": [ makeMarkerFunction(70) ],
+			"80%": [ makeMarkerFunction(80) ],
+			"90%": [ makeMarkerFunction(90) ],
+			"100%": [ makeMarkerFunction(100) ]
+		};
+
+		function frameHandler(values) {
+			var adjustedValue = values[0];
+			var text = progressText.getElementsByClassName("value")[0];
+			text.innerHTML = "$" + formatNumber(adjustedValue * 2000);
+			progressText.style.bottom = Math.max(1, values[0]) + "px";
+			progressTop.style.bottom = Math.max(1, values[0]) + "px";
+			this.style.height = Math.max(1, values[0]) + "px";
+		}
+
+		return TinYam({
+			duration: 2500,
+			keyframes: keyframes,
+			callbacks: callbacks,
+			using: progressBar,
+			easing:"easeInQuad"
+		}, frameHandler);
+	}
+};
+</script>
+<style>
+h1, h2, h3 {
+	font-family: sans-serif;
+}
+body {
+	background-color: #eee;
+}
+
+.projection-bar-mercury {
+	background-color: blue;
+}
+
+.projection-point.highlight {
+	color:red;
+	border-color:red;
+}
+
+.projection-point.highlight .little-circle {
+	border-color:red;
+	background-color:red;
+}
+
+#projection-container {
+	width:500px;
+	position:relative;
+}
+.projection-point.highlight {
+	color:red;
+	border-color:red;
+}
+
+.projection-point.highlight .little-circle {
+	border-color:red;
+	background-color:red;
+}
+
+#projection-bar-container {
+	height:552px;
+	width:50px;
+	float:left;
+	position:relative;
+	padding:5px;
+	margin-left:200px;
+/*	border:2px solid rgba(128, 128, 128, 0.5);*/
+	border-radius: 35px;
+}
+
+#projection-bar-container-overlay {
+	height:490px;
+	width:44px;
+	left:8px;
+	top:22px;
+	position:absolute;
+
+	background: -webkit-linear-gradient(right,
+		rgba(0, 0, 0, 0.25) 0%,
+		rgba(0, 0, 0, 0.1) 10%,
+		rgba(0, 0, 0, 0) 40%,
+		rgba(255, 255, 255, 0) 60%,
+		rgba(255, 255, 255, 0.3125) 75%,
+		rgba(255, 255, 255, 1) 78%,
+		rgba(255, 255, 255, 0.3125) 80%,
+		rgba(255, 255, 255, 0) 85%,
+		rgba(0, 0, 0, 0.1) 100% );
+
+	background: -moz-linear-gradient(right,
+		rgba(0, 0, 0, 0.25) 0%,
+		rgba(0, 0, 0, 0.1) 10%,
+		rgba(0, 0, 0, 0) 40%,
+		rgba(255, 255, 255, 0) 60%,
+		rgba(255, 255, 255, 0.3125) 75%,
+		rgba(255, 255, 255, 1) 78%,
+		rgba(255, 255, 255, 0.3125) 80%,
+		rgba(255, 255, 255, 0) 85%,
+		rgba(0, 0, 0, 0.1) 100% );
+}
+
+#projection-bar {
+	position:absolute;
+	left:15px;
+	bottom:40px;
+	width:30px;
+	/*height:30px;*/
+	/*border-radius: 15px;*/
+}
+#projection-bar-overlay {
+	width:100%;
+	height:100%;
+	background: -webkit-linear-gradient(right,
+		rgba(0, 0, 0, 0.3125) 0%,
+		rgba(0, 0, 0, 0) 25%,
+		rgba(255, 255, 255, 0.0625) 50%,
+		rgba(255, 255, 255, 0.3125) 70%,
+		rgba(255, 255, 255, 1) 80%,
+		rgba(255, 255, 255, 0.3125) 90%,
+		rgba(255, 255, 255, 0.0625) 93%,
+		rgba(255, 255, 255, 0.0625) 100% );
+
+	background: -moz-linear-gradient(right,
+		rgba(0, 0, 0, 0.3125) 0%,
+		rgba(0, 0, 0, 0) 25%,
+		rgba(255, 255, 255, 0.0625) 50%,
+		rgba(255, 255, 255, 0.3125) 70%,
+		rgba(255, 255, 255, 1) 80%,
+		rgba(255, 255, 255, 0.3125) 90%,
+		rgba(255, 255, 255, 0.0625) 93%,
+		rgba(255, 255, 255, 0.0625) 100% );
+}
+
+#projection-top {
+	position:absolute;
+	margin-bottom: 25px;
+	left: 15px;
+	width:30px;
+	bottom:0px;
+	height:30px;
+	border-radius: 15px;
+}
+#projection-top-overlay {
+	width:100%;
+	height:100%;
+	border-radius: 15px;
+	background: -webkit-radial-gradient(100% 50%, circle farthest-side,
+		rgba(0, 0, 0, 0.3125) 0%,
+		rgba(0, 0, 0, 0) 35%,
+		rgba(255, 255, 255, 0.0625) 45%,
+		rgba(255, 255, 255, 0.3125) 70%,
+		rgba(255, 255, 255, 1) 80%,
+		rgba(255, 255, 255, 0.3125) 89%,
+		rgba(255, 255, 255, 0.0625) 93%,
+		rgba(255, 255, 255, 0.0625) 100% );
+
+	background: -moz-radial-gradient(100% 50%, circle farthest-side,
+		rgba(0, 0, 0, 0.3125) 0%,
+		rgba(0, 0, 0, 0) 35%,
+		rgba(255, 255, 255, 0.0625) 45%,
+		rgba(255, 255, 255, 0.3125) 70%,
+		rgba(255, 255, 255, 1) 80%,
+		rgba(255, 255, 255, 0.3125) 89%,
+		rgba(255, 255, 255, 0.0625) 93%,
+		rgba(255, 255, 255, 0.0625) 100% );
+}
+
+#projection-bulb {
+	position:absolute;
+	width:50px;
+	height:50px;
+	bottom:5px;
+	border-radius: 25px;
+}
+#projection-bulb-overlay {
+	width:100%;
+	height:100%;
+	border-radius: 25px;
+	background: -webkit-radial-gradient(80% 50%, circle farthest-side,
+		rgba(0, 0, 0, 0.3125) 0%, rgba(0, 0, 0, 0) 60%,
+		rgba(255, 255, 255, 0.0625)  65%,
+		rgba(255, 255, 255, 0.3125) 78%,
+		rgba(255, 255, 255, 1) 85%,
+		rgba(255, 255, 255, 0.3125) 90%,
+		rgba(255, 255, 255, 0.0625) 93%,
+		rgba(255, 255, 255, 0.0625) 100% );
+
+	background: -moz-radial-gradient(80% 50%, circle farthest-side,
+		rgba(0, 0, 0, 0.3125) 0%, rgba(0, 0, 0, 0) 60%,
+		rgba(255, 255, 255, 0.0625)  65%,
+		rgba(255, 255, 255, 0.3125) 78%,
+		rgba(255, 255, 255, 1) 85%,
+		rgba(255, 255, 255, 0.3125) 90%,
+		rgba(255, 255, 255, 0.0625) 93%,
+		rgba(255, 255, 255, 0.0625) 100% );
+}
+
+#projection-key{
+	position:relative;
+	margin-left:231px;
+	width:180px;
+}
+
+.projection-point {
+	position:relative;
+	height:20px;
+	left:2px;
+	margin-bottom:29px;
+	font-size: 20px;
+	font-family: sans-serif;
+	border-bottom:1px solid darkgrey;
+	text-align:right;
+}
+
+.little-circle {
+	position: relative;
+	top:-8px;
+	left:-7px;
+	width:6px;
+	height:6px;
+	border-radius: 3px;
+	border:1px solid darkgrey;
+}
+
+.projection-point.current {
+	position: absolute;
+	margin-bottom:40px;
+	bottom:0px;
+	width:225px;
+	margin-left:0px;
+	text-align:left;
+}
+
+.projection-point.current .little-circle {
+	width:4px;
+	height:4px;
+	border-radius: 2px;
+	top:-7px;
+	left:225px;
+	background-color:darkgrey;
+}
+
+#projection-bar-container-overlay-top {
+	height: 22px;
+	width: 44px;
+	left: 8px;
+	top: 0px;
+	position: absolute;
+	overflow:hidden;
+}
+#projection-bar-container-overlay-bottom {
+	height: 50px;
+	width: 60px;
+	left: 0px;
+	bottom: 0px;
+	position: absolute;
+	overflow:hidden;
+}
+.inside-gradient {
+	border-radius: 30px;
+}
+#projection-bar-container-overlay-top .inside-gradient{
+	height: 44px;
+	width: 44px;
+	background: -webkit-radial-gradient(100% 50%, circle farthest-side,
+		rgba(0, 0, 0, 0.25) 0%,
+		rgba(0, 0, 0, 0.1) 10%,
+		rgba(0, 0, 0, 0) 40%,
+		rgba(255, 255, 255, 0) 60%,
+		rgba(255, 255, 255, 0.3125) 75%,
+		rgba(255, 255, 255, 1) 78%,
+		rgba(255, 255, 255, 0.3125) 80%,
+		rgba(255, 255, 255, 0) 85%,
+		rgba(0, 0, 0, 0.1) 100% );
+
+	background: -moz-radial-gradient(100% 50%, circle farthest-side,
+		rgba(0, 0, 0, 0.25) 0%,
+		rgba(0, 0, 0, 0.1) 10%,
+		rgba(0, 0, 0, 0) 40%,
+		rgba(255, 255, 255, 0) 60%,
+		rgba(255, 255, 255, 0.3125) 75%,
+		rgba(255, 255, 255, 1) 78%,
+		rgba(255, 255, 255, 0.3125) 80%,
+		rgba(255, 255, 255, 0) 85%,
+		rgba(0, 0, 0, 0.1) 100% );
+}
+#projection-bar-container-overlay-bottom .inside-gradient {
+	height: 60px;
+	width: 60px;
+	margin-top:-10px;
+	background: -webkit-radial-gradient(100% 50%, circle farthest-side,
+		rgba(0, 0, 0, 0.25) 0%,
+		rgba(0, 0, 0, 0.1) 40%,
+		rgba(0, 0, 0, 0.0) 60%,
+		rgba(255, 255, 256, 0) 60%,
+		rgba(255, 255, 255, 0.3125) 75%,
+		rgba(255, 255, 255, 1) 78%,
+		rgba(255, 255, 255, 0.3125) 80%,
+		rgba(255, 255, 255, 0) 85%,
+		rgba(0, 0, 0, 0.1) 100% );
+
+	background: -moz-radial-gradient(100% 50%, circle farthest-side,
+		rgba(0, 0, 0, 0.25) 0%,
+		rgba(0, 0, 0, 0.1) 40%,
+		rgba(0, 0, 0, 0.0) 60%,
+		rgba(255, 255, 256, 0) 60%,
+		rgba(255, 255, 255, 0.3125) 75%,
+		rgba(255, 255, 255, 1) 78%,
+		rgba(255, 255, 255, 0.3125) 80%,
+		rgba(255, 255, 255, 0) 85%,
+		rgba(0, 0, 0, 0.1) 100% );
+}
+
+#donate {
+	float:right;
+}
+#donate input,
+#donate button {
+	padding:5px;
+}
+
+.clearfix {
+	clear:both;
+}
+</style>
+</head>
+<body>
+	<h1>Animated HTML5 Fund-Raising Thermometer</h1>
+	<div id="donate">
+		Donate Now: <input type="text" id="dollars" placeholder="Enter a dollar amount"/><button id="plot-it">Donate it!</button>
+	</div>
+	<h2>We need your help to fight Flash!</h2>
+	<div id="projection-container">
+		<div id="projection-bar-container">
+			<div id="projection-top" class="projection-bar-mercury"><div id="projection-top-overlay"></div></div>
+			<div id="projection-bar" class="projection-bar-mercury"><div id="projection-bar-overlay"></div></div>
+			<div id="projection-bulb" class="projection-bar-mercury"><div id="projection-bulb-overlay"></div></div>
+			<div id="projection-bar-container-overlay-top"><div class="inside-gradient"></div></div>
+			<div id="projection-bar-container-overlay"></div>
+			<div id="projection-bar-container-overlay-bottom"><div class="inside-gradient"></div></div>
+		</div>
+		<div class="projection-point current">Raised <span class="value">$0</span><div class="little-circle"></div></div>
+		<div id="projection-key">
+			<div class="projection-point percent_100"><span class="value">Goal $1M</span><div class="little-circle"></div></div>
+			<div class="projection-point percent_90"><span class="value">$900k</span><div class="little-circle"></div></div>
+			<div class="projection-point percent_80"><span class="value">$800k</span><div class="little-circle"></div></div>
+			<div class="projection-point percent_70"><span class="value">$700k</span><div class="little-circle"></div></div>
+			<div class="projection-point percent_60"><span class="value">$600k</span><div class="little-circle"></div></div>
+			<div class="projection-point percent_50"><span class="value">$500k</span><div class="little-circle"></div></div>
+			<div class="projection-point percent_40"><span class="value">$400k</span><div class="little-circle"></div></div>
+			<div class="projection-point percent_30"><span class="value">$300k</span><div class="little-circle"></div></div>
+			<div class="projection-point percent_20"><span class="value">$200k</span><div class="little-circle"></div></div>
+			<div class="projection-point percent_10"><span class="value">$100k</span><div class="little-circle"></div></div>
+		</div>
+		<div class="clearfix"></div>
+	</div>
